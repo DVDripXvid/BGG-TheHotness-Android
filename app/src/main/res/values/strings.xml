@@ -1,6 +1,5 @@
 <resources>
-    <string name="app_name">BGG-TheHotness</string>
-    <string name="title_home">Home</string>
-    <string name="title_dashboard">Dashboard</string>
-    <string name="title_notifications">Notifications</string>
+    <string name="app_name">BGG The Hotness</string>
+    <string name="title_hotness">The Hotness</string>
+    <string name="title_favorites">Favorites</string>
 </resources>

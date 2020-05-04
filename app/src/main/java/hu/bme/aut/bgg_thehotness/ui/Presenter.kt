@@ -1,5 +1,7 @@
 package hu.bme.aut.bgg_thehotness.ui
 
+import org.greenrobot.eventbus.EventBus
+
 abstract class Presenter<S> {
     protected var screen: S? = null
 

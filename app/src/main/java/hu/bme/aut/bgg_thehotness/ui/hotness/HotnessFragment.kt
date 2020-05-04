@@ -5,14 +5,19 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
 import hu.bme.aut.bgg_thehotness.R
 import hu.bme.aut.bgg_thehotness.injector
-import hu.bme.aut.bgg_thehotness.model.BoardGameWithIsFavorite
+import hu.bme.aut.bgg_thehotness.model.BoardGame
+import hu.bme.aut.bgg_thehotness.ui.ClickListener
+import kotlinx.android.synthetic.main.fragment_hotness.*
 import javax.inject.Inject
 
-class HotnessFragment : Fragment(), HotnessScreen {
+class HotnessFragment : Fragment(), HotnessScreen, ClickListener<BoardGame> {
+
+    private val displayedGames: MutableList<BoardGame> = mutableListOf()
+    private var hotnessAdapter: HotnessAdapter? = null
 
     @Inject
     lateinit var presenter: HotnessPresenter
@@ -22,10 +27,24 @@ class HotnessFragment : Fragment(), HotnessScreen {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val root = inflater.inflate(R.layout.fragment_hotness, container, false)
-        val textView: TextView = root.findViewById(R.id.text_hotness)
-        textView.text = "The hotness fragment"
-        return root
+        return inflater.inflate(R.layout.fragment_hotness, container, false)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val llm = LinearLayoutManager(context)
+        llm.orientation = LinearLayoutManager.VERTICAL
+        recyclerViewHotGames.layoutManager = llm
+
+        hotnessAdapter = HotnessAdapter(context!!, displayedGames, this)
+        recyclerViewHotGames.adapter = hotnessAdapter
+
+        swipeRefreshLayoutHotGames.setOnRefreshListener {
+            presenter.refreshHotGames()
+        }
+
+        presenter.refreshHotGames()
     }
 
     override fun onAttach(context: Context?) {
@@ -34,17 +53,32 @@ class HotnessFragment : Fragment(), HotnessScreen {
         presenter.attachScreen(this)
     }
 
-    override fun onDetach() {
-        super.onDetach()
+    override fun onDestroyView() {
         presenter.detachScreen()
+        super.onDestroyView()
     }
 
-    override fun showHotBoardGames(hotGames: List<BoardGameWithIsFavorite>) {
-        TODO("Not yet implemented")
+    override fun showHotBoardGames(hotGames: List<BoardGame>) {
+        swipeRefreshLayoutHotGames.isRefreshing = false
+        displayedGames.clear()
+        displayedGames.addAll(hotGames)
+        hotnessAdapter?.notifyDataSetChanged()
     }
 
-    override fun updateBoardGame(game: BoardGameWithIsFavorite) {
-        TODO("Not yet implemented")
+    override fun updateIsFavorite(gameId: Int, isFavorite: Boolean) {
+        val updatedGame = displayedGames.find { it.gameId == gameId }
+        updatedGame?.let {
+            it.isFavorite = isFavorite
+            hotnessAdapter?.notifyItemChanged(displayedGames.indexOf(it))
+        }
+    }
+
+    override fun onClick(item: BoardGame) {
+        if (item.isFavorite == true) {
+            presenter.removeFromFavorites(item.gameId)
+        } else {
+            presenter.addToFavorites(item)
+        }
     }
 
 }

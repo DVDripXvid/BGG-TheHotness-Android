@@ -5,5 +5,6 @@ data class BoardGame(
     var name: String,
     var rank: Int,
     var yearPublished: Int,
-    var thumbnail: Int
+    var thumbnail: String,
+    var isFavorite: Boolean? = false
 )
